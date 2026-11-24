@@ -1,0 +1,22 @@
+spring:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+app:
+  timezone: Asia/Bishkek
+  office-capacity: 10
+  allow-same-day-booking: false
+  cancellation-deadline-hours: 0
+  jwt:
+    secret: test-secret-test-secret-test-secret-1234567890
+    expiration-minutes: 60
+  cors:
+    allowed-origins: http://localhost:5173
+  bootstrap:
+    manager-email: manager@test.local
+    manager-password: Manager#12345
+    manager-first-name: Test
+    manager-last-name: Manager
+    demo-data: false
+    demo-password: ""
