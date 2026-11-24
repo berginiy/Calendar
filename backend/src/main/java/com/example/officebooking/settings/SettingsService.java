@@ -59,7 +59,8 @@ public class SettingsService {
         AppSettings s = settingsRepo.findExclusiveLocked()
                 .orElseThrow(() -> new IllegalStateException("Настройки приложения не инициализированы"));
 
-        if (req.officeCapacity() < s.getOfficeCapacity()) {
+        int oldCapacity = s.getOfficeCapacity();
+        if (req.officeCapacity() < oldCapacity) {
             // уменьшать можно только если ни на одну будущую дату уже нет большего числа броней
             LocalDate today = LocalDate.now(clock);
             List<Object[]> over = presenceRepo.findDatesOverCapacity(
@@ -74,22 +75,22 @@ public class SettingsService {
         }
 
         String before = "capacity=" + s.getOfficeCapacity() + ", sameDay=" + s.isAllowSameDayBooking()
-                + ", cancelHours=" + s.getCancellationDeadlineHours() + ", workingDays=" + s.getWorkingDays();
+                + ", cancelHours=" + s.getCancellationDeadlineHours() + ", workingDays=" + s.getWorkingDays()
+                + ", teamVisible=" + s.isTeamVisibleToEmployees();
         s.setOfficeCapacity(req.officeCapacity());
         s.setAllowSameDayBooking(req.allowSameDayBooking());
         s.setCancellationDeadlineHours(req.cancellationDeadlineHours());
         s.setWorkingDaysSet(req.workingDays());
+        s.setTeamVisibleToEmployees(req.teamVisibleToEmployees());
         s.setUpdatedAt(Instant.now(clock));
         s.setUpdatedByUserId(actorId);
         settingsRepo.save(s);
 
         String after = "capacity=" + s.getOfficeCapacity() + ", sameDay=" + s.isAllowSameDayBooking()
-                + ", cancelHours=" + s.getCancellationDeadlineHours() + ", workingDays=" + s.getWorkingDays();
-        if (before.split(",")[0].equals(after.split(",")[0])) {
-            audit.log(actorId, "SETTINGS_CHANGED", "AppSettings", s.getId(), "before: " + before + " | after: " + after);
-        } else {
-            audit.log(actorId, "CAPACITY_CHANGED", "AppSettings", s.getId(), "before: " + before + " | after: " + after);
-        }
+                + ", cancelHours=" + s.getCancellationDeadlineHours() + ", workingDays=" + s.getWorkingDays()
+                + ", teamVisible=" + s.isTeamVisibleToEmployees();
+        audit.log(actorId, req.officeCapacity() != oldCapacity ? "CAPACITY_CHANGED" : "SETTINGS_CHANGED",
+                "AppSettings", s.getId(), "before: " + before + " | after: " + after);
         return SettingsResponse.from(s);
     }
 

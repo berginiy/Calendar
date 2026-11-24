@@ -23,6 +23,14 @@ const ACTION_LABEL: Record<string, string> = {
   LIMIT_RULE_CHANGED: 'Изменён лимит',
   CAPACITY_CHANGED: 'Изменена вместимость',
   SETTINGS_CHANGED: 'Изменены настройки',
+  EMPLOYEE_CREATED: 'Сотрудник создан',
+  EMPLOYEE_UPDATED: 'Данные сотрудника изменены',
+  ROLE_CHANGED: 'Изменена роль сотрудника',
+  EMPLOYEE_DEACTIVATED: 'Сотрудник отключён',
+  EMPLOYEE_ACTIVATED: 'Сотрудник включён',
+  PASSWORD_RESET: 'Сброшен пароль сотрудника',
+  PASSWORD_CHANGED: 'Пароль изменён',
+  ADMIN_CANCELLED_RECORDS: 'Руководитель отменил записи сотрудника',
 }
 
 export function ReportsPage() {

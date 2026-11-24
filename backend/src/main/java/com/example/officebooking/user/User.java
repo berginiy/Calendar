@@ -35,6 +35,9 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword = false;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

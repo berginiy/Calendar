@@ -9,6 +9,8 @@ interface AuthState {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  /** Вызывается после успешной смены пароля: снимает флаг принудительной смены. */
+  passwordChanged: () => void
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -44,7 +46,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user)
   }, [])
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout])
+  const passwordChanged = useCallback(() => {
+    setUser((u) => (u ? { ...u, mustChangePassword: false } : u))
+  }, [])
+
+  const value = useMemo(
+    () => ({ user, loading, login, logout, passwordChanged }),
+    [user, loading, login, logout, passwordChanged],
+  )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

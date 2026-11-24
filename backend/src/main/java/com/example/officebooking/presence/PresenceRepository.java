@@ -47,6 +47,23 @@ public interface PresenceRepository extends JpaRepository<PresenceRecord, Long>,
     List<Object[]> findDatesOverCapacity(@Param("type") PresenceType type, @Param("status") PresenceStatus status,
                                          @Param("from") LocalDate from, @Param("capacity") long capacity);
 
+    List<PresenceRecord> findByUser_IdAndTypeAndStatusAndPresenceDateBetween(Long userId, PresenceType type,
+                                                                             PresenceStatus status, LocalDate from, LocalDate to);
+
+    long countByStatusAndPresenceDateBetween(PresenceStatus status, LocalDate from, LocalDate to);
+
+    /** Все записи периода с пользователями (для командного календаря). */
+    @Query("select p from PresenceRecord p join fetch p.user where p.status = :status "
+            + "and p.presenceDate between :from and :to")
+    List<PresenceRecord> findAllByStatusInRangeWithUser(@Param("status") PresenceStatus status,
+                                                        @Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    /** Активные записи пользователя начиная с даты (для деактивации учётной записи). */
+    @Query("select p from PresenceRecord p where p.user.id = :userId and p.status = :status "
+            + "and p.presenceDate >= :from")
+    List<PresenceRecord> findActiveForUserFrom(@Param("userId") Long userId, @Param("status") PresenceStatus status,
+                                               @Param("from") LocalDate from);
+
     /** Агрегаты по пользователям: [userId, type, status, count]. */
     @Query("select p.user.id, p.type, p.status, count(p) from PresenceRecord p "
             + "where p.presenceDate between :from and :to group by p.user.id, p.type, p.status")

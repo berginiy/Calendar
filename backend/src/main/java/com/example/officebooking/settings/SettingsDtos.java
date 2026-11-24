@@ -17,13 +17,16 @@ public final class SettingsDtos {
             boolean allowSameDayBooking,
             @Min(value = 0, message = "Срок отмены не может быть отрицательным")
             @Max(value = 720, message = "Срок отмены не может превышать 720 часов") int cancellationDeadlineHours,
-            @NotEmpty(message = "Выберите хотя бы один рабочий день") Set<DayOfWeek> workingDays) {}
+            @NotEmpty(message = "Выберите хотя бы один рабочий день") Set<DayOfWeek> workingDays,
+            boolean teamVisibleToEmployees) {}
 
     public record SettingsResponse(int officeCapacity, boolean allowSameDayBooking, int cancellationDeadlineHours,
-                                   List<DayOfWeek> workingDays, String timezone) {
+                                   List<DayOfWeek> workingDays, String timezone,
+                                   boolean teamVisibleToEmployees) {
         public static SettingsResponse from(AppSettings s) {
             return new SettingsResponse(s.getOfficeCapacity(), s.isAllowSameDayBooking(),
-                    s.getCancellationDeadlineHours(), s.workingDaysSet().stream().sorted().toList(), s.getTimezone());
+                    s.getCancellationDeadlineHours(), s.workingDaysSet().stream().sorted().toList(), s.getTimezone(),
+                    s.isTeamVisibleToEmployees());
         }
     }
 

@@ -3,7 +3,9 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { ProtectedRoute } from './ProtectedRoute'
 import type { Role } from '../../types/api'
 
-const auth = vi.hoisted(() => ({ value: { user: null as null | { role: string }, loading: false } }))
+const auth = vi.hoisted(() => ({
+  value: { user: null as null | { role: string; mustChangePassword?: boolean }, loading: false },
+}))
 vi.mock('./AuthContext', () => ({ useAuth: () => auth.value }))
 
 function renderAt(path: string) {
@@ -11,6 +13,7 @@ function renderAt(path: string) {
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/login" element={<div>Страница входа</div>} />
+        <Route path="/change-password" element={<div>Смена пароля</div>} />
         <Route element={<ProtectedRoute />}>
           <Route path="/calendar" element={<div>Календарь</div>} />
           <Route element={<ProtectedRoute roles={['MANAGER']} />}>
@@ -42,6 +45,13 @@ describe('ProtectedRoute', () => {
     renderAt('/manager/dashboard')
     expect(screen.queryByText('Дашборд')).not.toBeInTheDocument()
     expect(screen.getByText('Нет доступа')).toBeInTheDocument()
+  })
+
+  it('отправляет на смену временного пароля до любой другой страницы', () => {
+    auth.value = { user: { role: 'EMPLOYEE', mustChangePassword: true }, loading: false }
+    renderAt('/calendar')
+    expect(screen.getByText('Смена пароля')).toBeInTheDocument()
+    expect(screen.queryByText('Календарь')).not.toBeInTheDocument()
   })
 
   it('пускает руководителя на дашборд', () => {

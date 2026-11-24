@@ -16,6 +16,7 @@ interface SettingsForm {
   allowSameDayBooking: boolean
   cancellationDeadlineHours: number
   workingDays: DayOfWeek[]
+  teamVisibleToEmployees: boolean
 }
 
 interface LimitsForm {
@@ -89,6 +90,11 @@ export function SettingsPage() {
             <InputNumber min={1} max={1000} precision={0} />
           </Form.Item>
           <Form.Item name="allowSameDayBooking" label="Разрешить запись на текущий день" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+          <Form.Item name="teamVisibleToEmployees" label="Показывать сотрудникам имена коллег в командном календаре"
+            valuePropName="checked"
+            extra="Выключено: сотрудники видят только количество людей в офисе и удалённо. Email коллег не показывается никогда.">
             <Switch />
           </Form.Item>
           <Form.Item name="cancellationDeadlineHours" label="Срок отмены, часов до начала дня"

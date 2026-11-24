@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,6 +17,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Проверяет Bearer-токен и при каждом запросе перечитывает пользователя из БД,
  * чтобы отключённый пользователь или смена роли действовали немедленно.
+ *
+ * Пока у пользователя установлен флаг must_change_password (временный пароль), разрешены только
+ * запросы /api/auth/me и /api/auth/change-password — остальные получают 403 PASSWORD_CHANGE_REQUIRED.
  */
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
@@ -32,15 +36,29 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
-            jwtService.parseUserId(header.substring(7)).flatMap(users::findById)
-                    .filter(User::isEnabled)
-                    .ifPresent(u -> {
-                        UserPrincipal principal = new UserPrincipal(u.getId(), u.getEmail(), u.getRole());
-                        var auth = new UsernamePasswordAuthenticationToken(principal, null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + u.getRole().name())));
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                    });
+            User user = jwtService.parseUserId(header.substring(7)).flatMap(users::findById)
+                    .filter(User::isEnabled).orElse(null);
+            if (user != null) {
+                if (user.isMustChangePassword() && !allowedWhilePasswordChangeRequired(request)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("{\"code\":\"PASSWORD_CHANGE_REQUIRED\","
+                            + "\"message\":\"Необходимо сменить временный пароль\",\"details\":[],"
+                            + "\"timestamp\":\"" + Instant.now() + "\"}");
+                    return;
+                }
+                UserPrincipal principal = new UserPrincipal(user.getId(), user.getEmail(), user.getRole());
+                var auth = new UsernamePasswordAuthenticationToken(principal, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
         }
         chain.doFilter(request, response);
+    }
+
+    private static boolean allowedWhilePasswordChangeRequired(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.equals("/api/auth/me") || path.equals("/api/auth/change-password");
     }
 }

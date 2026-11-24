@@ -39,6 +39,10 @@ public class AppSettings {
     @Column(nullable = false)
     private String timezone;
 
+    /** Могут ли обычные сотрудники видеть имена и статусы коллег в командном календаре. */
+    @Column(name = "team_visible_to_employees", nullable = false)
+    private boolean teamVisibleToEmployees;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 

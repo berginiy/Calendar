@@ -14,6 +14,12 @@ describe('describeDay', () => {
     expect(v.statusText).toBeNull()
   })
 
+  it('показывает «почти заполнено» оранжевым', () => {
+    const v = describeDay({ ...base, occupied: 9, free: 1, occupancyLevel: 'ALMOST_FULL' })
+    expect(v.tone).toBe('almost')
+    expect(v.officeText).toBe('Офис: 9 / 10, свободно: 1')
+  })
+
   it('показывает «мест нет» красным, когда всё занято', () => {
     const v = describeDay({ ...base, occupied: 10, free: 0, canBook: false, unavailableReason: 'Свободных мест нет' })
     expect(v.tone).toBe('full')

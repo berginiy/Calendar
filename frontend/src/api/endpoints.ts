@@ -1,13 +1,15 @@
 import { api } from './client'
 import type {
-  AuditRow, CalendarDay, Dashboard, LimitRule, LoginResponse, MyStats, PageResponse, PresenceDto,
-  PresenceStatus, ReportRow, Settings, SummaryRow, User,
+  Analytics, AuditRow, CalendarDay, CredentialsResponse, Dashboard, Employee, LimitRule, LoginResponse, MyStats, PageResponse, PresenceDto,
+  PresenceStatus, ReportRow, Role, Settings, SummaryRow, TeamResponse, User,
 } from '../types/api'
 
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<LoginResponse>('/auth/login', { email, password }).then((r) => r.data),
   me: () => api.get<User>('/auth/me').then((r) => r.data),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post('/auth/change-password', { currentPassword, newPassword }).then(() => undefined),
 }
 
 export const calendarApi = {
@@ -52,4 +54,44 @@ export const managerApi = {
   saveSettings: (s: Omit<Settings, 'timezone'>) => api.put<Settings>('/manager/settings', s).then((r) => r.data),
   limitRules: () => api.get<LimitRule[]>('/manager/limit-rules').then((r) => r.data),
   saveLimitRules: (rules: LimitRule[]) => api.put<LimitRule[]>('/manager/limit-rules', rules).then((r) => r.data),
+}
+
+export const teamApi = {
+  get: (from: string, to: string) => api.get<TeamResponse>('/team', { params: { from, to } }).then((r) => r.data),
+}
+
+export const analyticsApi = {
+  get: (from: string, to: string) =>
+    api.get<Analytics>('/manager/analytics', { params: { from, to } }).then((r) => r.data),
+  csv: (from: string, to: string) =>
+    api.get<Blob>('/manager/analytics/export.csv', { params: { from, to }, responseType: 'blob' }).then((r) => r.data),
+}
+
+export interface EmployeeFilter {
+  q?: string
+  role?: Role
+  enabled?: boolean
+  page: number
+  size: number
+}
+
+export interface EmployeeForm {
+  firstName: string
+  lastName: string
+  email?: string
+  role: Role
+}
+
+export const employeeApi = {
+  list: (p: EmployeeFilter) =>
+    api.get<PageResponse<Employee>>('/manager/employees', { params: p }).then((r) => r.data),
+  create: (f: Required<EmployeeForm>) =>
+    api.post<CredentialsResponse>('/manager/employees', f).then((r) => r.data),
+  update: (id: number, f: Omit<EmployeeForm, 'email'>) =>
+    api.put<Employee>(`/manager/employees/${id}`, f).then((r) => r.data),
+  deactivate: (id: number) =>
+    api.post<Employee>(`/manager/employees/${id}/deactivate`, { cancelFutureRecords: true }).then((r) => r.data),
+  activate: (id: number) => api.post<Employee>(`/manager/employees/${id}/activate`).then((r) => r.data),
+  resetPassword: (id: number) =>
+    api.post<{ temporaryPassword: string }>(`/manager/employees/${id}/reset-password`).then((r) => r.data),
 }

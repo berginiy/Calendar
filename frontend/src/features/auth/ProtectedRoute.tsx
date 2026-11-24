@@ -14,6 +14,10 @@ export function ProtectedRoute({ roles }: { roles?: Role[] }) {
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
+  // временный пароль нужно сменить до любой другой работы (backend тоже блокирует остальные запросы)
+  if (user.mustChangePassword && location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace />
+  }
   if (roles && !roles.includes(user.role)) {
     return (
       <Result

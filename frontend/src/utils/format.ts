@@ -30,7 +30,12 @@ export const STATUS_LABEL: Record<MyStatus, string> = {
   NONE: 'Не выбран',
 }
 
-export type DayTone = 'free' | 'full' | 'remote' | 'office' | 'disabled'
+export type DayTone = 'free' | 'almost' | 'full' | 'remote' | 'office' | 'disabled'
+
+export const DAY_NAME: Record<string, string> = {
+  MONDAY: 'Понедельник', TUESDAY: 'Вторник', WEDNESDAY: 'Среда', THURSDAY: 'Четверг',
+  FRIDAY: 'Пятница', SATURDAY: 'Суббота', SUNDAY: 'Воскресенье',
+}
 
 export interface DayView {
   tone: DayTone
@@ -52,6 +57,7 @@ export function describeDay(d: CalendarDay): DayView {
 
   const dateUnavailable = !d.canRemote && d.unavailableReason !== null && d.free > 0
   if (dateUnavailable || !d.workingDay) return { tone: 'disabled', officeText, statusText: null }
-  if (d.free === 0) return { tone: 'full', officeText, statusText: null }
+  if (d.free === 0 || d.occupancyLevel === 'FULL') return { tone: 'full', officeText, statusText: null }
+  if (d.occupancyLevel === 'ALMOST_FULL') return { tone: 'almost', officeText, statusText: null }
   return { tone: 'free', officeText, statusText: null }
 }

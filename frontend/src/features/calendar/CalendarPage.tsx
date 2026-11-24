@@ -11,6 +11,7 @@ import { DATE_FMT, describeDay, formatDate, todayBishkek, type DayTone } from '.
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 const TONE_LABEL: Record<DayTone, string> = {
   free: 'Есть свободные места',
+  almost: 'Почти заполнено',
   full: 'Мест нет',
   remote: 'Удалённо',
   office: 'В офисе',
@@ -34,6 +35,7 @@ export function CalendarPage() {
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['calendar'] })
     queryClient.invalidateQueries({ queryKey: ['my-stats'] })
+    queryClient.invalidateQueries({ queryKey: ['team'] })
   }
 
   const run = useMutation({
@@ -140,8 +142,18 @@ export function CalendarPage() {
                 {current.myStatus === 'OFFICE' ? 'В офисе' : current.myStatus === 'REMOTE' ? 'Удалённо' : 'Не выбран'}
               </Descriptions.Item>
             </Descriptions>
-            {current.unavailableReason && current.myStatus === 'NONE' && (
-              <Alert type="warning" showIcon message={current.unavailableReason} />
+            {current.myStatus === 'NONE' && (!current.canBook || !current.canRemote) && (
+              <Alert type="warning" showIcon message="Почему доступны не все действия"
+                description={
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {!current.canBook && (
+                      <li>Бронирование места: {current.bookReason ?? current.unavailableReason ?? 'недоступно'}</li>
+                    )}
+                    {!current.canRemote && (
+                      <li>Удалённая работа: {current.remoteReason ?? current.unavailableReason ?? 'недоступно'}</li>
+                    )}
+                  </ul>
+                } />
             )}
             <Space wrap>
               {current.myStatus === 'NONE' && (
@@ -165,7 +177,7 @@ export function CalendarPage() {
               )}
             </Space>
             {current.myStatus !== 'NONE' && !current.canCancel && (
-              <Typography.Text type="secondary">Срок отмены этой записи истёк.</Typography.Text>
+              <Typography.Text type="secondary">{current.cancelReason ?? 'Срок отмены этой записи истёк.'}</Typography.Text>
             )}
           </Space>
         )}

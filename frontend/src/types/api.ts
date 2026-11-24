@@ -12,6 +12,7 @@ export interface User {
   email: string
   role: Role
   enabled: boolean
+  mustChangePassword: boolean
 }
 
 export interface LoginResponse {
@@ -27,12 +28,17 @@ export interface CalendarDay {
   capacity: number
   occupied: number
   free: number
+  occupancyLevel?: 'FREE' | 'ALMOST_FULL' | 'FULL'
   myStatus: MyStatus
   myRecordId: number | null
   canBook: boolean
   canRemote: boolean
   canCancel: boolean
+  /** Общая причина уровня даты (прошлое, выходной, мест нет) */
   unavailableReason: string | null
+  bookReason?: string | null
+  remoteReason?: string | null
+  cancelReason?: string | null
 }
 
 export interface PresenceDto {
@@ -126,6 +132,7 @@ export interface Settings {
   cancellationDeadlineHours: number
   workingDays: DayOfWeek[]
   timezone: string
+  teamVisibleToEmployees: boolean
 }
 
 export interface LimitRule {
@@ -138,4 +145,88 @@ export interface ApiError {
   code: string
   message: string
   details?: string[]
+}
+
+// ---------- Командный календарь ----------
+export interface TeamMember {
+  userId: number
+  fullName: string
+  status: MyStatus
+}
+
+export interface TeamDay {
+  date: string
+  workingDay: boolean
+  office: number
+  remote: number
+  notSelected: number
+  members: TeamMember[]
+}
+
+export interface TeamResponse {
+  visibility: 'FULL' | 'COUNTS_ONLY'
+  totalEmployees: number
+  days: TeamDay[]
+}
+
+// ---------- Аналитика ----------
+export interface DayStat {
+  date: string
+  workingDay: boolean
+  office: number
+  remote: number
+  free: number
+  utilization: number
+}
+
+export interface WeekdayStat {
+  day: DayOfWeek
+  days: number
+  avgOccupied: number
+  maxOccupied: number
+  avgUtilization: number
+}
+
+export interface PeriodStat {
+  period: string
+  from: string
+  to: string
+  workingDays: number
+  office: number
+  remote: number
+  utilization: number
+}
+
+export interface Analytics {
+  basis: 'PLANNED'
+  from: string
+  to: string
+  capacity: number
+  workingDays: number
+  officeBookings: number
+  remoteDays: number
+  cancelled: number
+  overallUtilization: number
+  byWeekday: WeekdayStat[]
+  topDemand: DayStat[]
+  lowDemand: DayStat[]
+  weekly: PeriodStat[]
+  monthly: PeriodStat[]
+}
+
+// ---------- Сотрудники ----------
+export interface Employee {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  role: Role
+  enabled: boolean
+  mustChangePassword: boolean
+  createdAt: string
+}
+
+export interface CredentialsResponse {
+  employee: Employee
+  temporaryPassword: string
 }

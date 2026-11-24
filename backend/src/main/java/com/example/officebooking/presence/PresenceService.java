@@ -23,6 +23,7 @@ import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -66,6 +67,11 @@ public class PresenceService {
         User user = users.findById(userId).orElseThrow(() -> ApiException.notFound("Пользователь не найден"));
 
         advisoryLock(USER_LOCK_NAMESPACE + userId);
+        // после получения блокировки перечитываем пользователя: его могли отключить, пока мы ждали
+        em.refresh(user);
+        if (!user.isEnabled()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_DISABLED", "Учётная запись отключена");
+        }
         AppSettings settings = settingsService.lockedForBooking();
 
         rules.unavailableReason(date, settings.isAllowSameDayBooking(), settings.workingDaysSet())
@@ -152,6 +158,31 @@ public class PresenceService {
         audit.log(actor.id(), action, type.name(), record.getId(),
                 "date=" + record.getPresenceDate() + ", ownerUserId=" + record.getUser().getId());
         return PresenceDto.from(record);
+    }
+
+    /** Берёт ту же блокировку пользователя, что и создание записей (до конца текущей транзакции). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lockUser(Long userId) {
+        advisoryLock(USER_LOCK_NAMESPACE + userId);
+    }
+
+    /** Отменяет все активные записи пользователя начиная с даты (при деактивации). История сохраняется. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int cancelFutureForUser(Long userId, Long actorId, LocalDate from) {
+        advisoryLock(USER_LOCK_NAMESPACE + userId);
+        List<PresenceRecord> records = repo.findActiveForUserFrom(userId, PresenceStatus.ACTIVE, from);
+        Instant now = Instant.now(clock);
+        for (PresenceRecord r : records) {
+            r.setStatus(PresenceStatus.CANCELLED);
+            r.setCancelledAt(now);
+            r.setCancelledByUserId(actorId);
+        }
+        repo.saveAll(records);
+        if (!records.isEmpty()) {
+            audit.log(actorId, "ADMIN_CANCELLED_RECORDS", "User", userId,
+                    "count=" + records.size() + ", from=" + from);
+        }
+        return records.size();
     }
 
     @Transactional(readOnly = true)
