@@ -1,10 +1,11 @@
 import { Avatar, Dropdown, Layout, Menu, Space, Tag, Typography } from 'antd'
 import {
   BarChartOutlined, CalendarOutlined, DashboardOutlined, FileTextOutlined, LogoutOutlined, SettingOutlined,
-  TeamOutlined, UserOutlined, LineChartOutlined, KeyOutlined, IdcardOutlined,
+  TeamOutlined, UserOutlined, LineChartOutlined, KeyOutlined, IdcardOutlined, CheckSquareOutlined, SwapOutlined,
 } from '@ant-design/icons'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../features/auth/AuthContext'
+import { NotificationBell } from './NotificationBell'
 
 const { Header, Content, Sider } = Layout
 
@@ -17,12 +18,16 @@ export function AppLayout() {
   const items = [
     { key: '/calendar', icon: <CalendarOutlined />, label: 'Календарь' },
     { key: '/team', icon: <TeamOutlined />, label: 'Команда' },
+    { key: '/preferences', icon: <SwapOutlined />, label: 'Предпочтения' },
+    { key: '/tasks', icon: <CheckSquareOutlined />, label: 'Мои задачи' },
     { key: '/my-statistics', icon: <LineChartOutlined />, label: 'Моя статистика' },
     ...(isManager
       ? [{
           type: 'group' as const, key: 'manager', label: 'Руководитель',
           children: [
             { key: '/manager/dashboard', icon: <DashboardOutlined />, label: 'Дашборд' },
+            { key: '/manager/allocation', icon: <SwapOutlined />, label: 'Распределение' },
+            { key: '/manager/tasks', icon: <CheckSquareOutlined />, label: 'Задачи команды' },
             { key: '/manager/analytics', icon: <BarChartOutlined />, label: 'Аналитика' },
             { key: '/manager/reports', icon: <FileTextOutlined />, label: 'Отчёты' },
             { key: '/manager/employees', icon: <IdcardOutlined />, label: 'Сотрудники' },
@@ -53,8 +58,9 @@ export function AppLayout() {
           style={{ borderInlineEnd: 0 }} />
       </Sider>
       <Layout>
-        <Header style={{ background: '#fff', display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
+        <Header style={{ background: '#fff', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12,
           padding: '0 16px', borderBottom: '1px solid #f0f0f0' }}>
+          <NotificationBell />
           <Dropdown menu={profileMenu} trigger={['click']}>
             <Space style={{ cursor: 'pointer' }} role="button" tabIndex={0} aria-label="Меню профиля">
               <Avatar icon={<UserOutlined />} />

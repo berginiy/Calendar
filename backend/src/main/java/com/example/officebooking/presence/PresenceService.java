@@ -64,6 +64,23 @@ public class PresenceService {
 
     @Transactional
     public PresenceDto create(Long userId, LocalDate date, PresenceType type) {
+        return createInternal(userId, date, type, userId,
+                type == PresenceType.OFFICE ? "BOOKING_CREATED" : "REMOTE_DAY_CREATED", "date=" + date);
+    }
+
+    /**
+     * Создание записи по результату подтверждённого распределения: те же проверки и блокировки, что и при обычной
+     * записи (вместимость, лимиты удалёнки, дубли, доступность даты). Автор действия — руководитель.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public PresenceDto createForAllocation(Long userId, LocalDate date, PresenceType type, Long actorId, Long runId) {
+        return createInternal(userId, date, type, actorId,
+                type == PresenceType.OFFICE ? "ALLOCATION_BOOKING_CREATED" : "ALLOCATION_REMOTE_DAY_CREATED",
+                "date=" + date + ", allocationRunId=" + runId + ", userId=" + userId);
+    }
+
+    private PresenceDto createInternal(Long userId, LocalDate date, PresenceType type, Long actorId,
+                                       String auditAction, String auditDetails) {
         User user = users.findById(userId).orElseThrow(() -> ApiException.notFound("Пользователь не найден"));
 
         advisoryLock(USER_LOCK_NAMESPACE + userId);
@@ -118,8 +135,7 @@ public class PresenceService {
             throw ApiException.conflict("DUPLICATE", "На эту дату у вас уже есть активная запись");
         }
 
-        audit.log(userId, type == PresenceType.OFFICE ? "BOOKING_CREATED" : "REMOTE_DAY_CREATED",
-                type.name(), record.getId(), "date=" + date);
+        audit.log(actorId, auditAction, type.name(), record.getId(), auditDetails);
         return PresenceDto.from(record);
     }
 

@@ -31,6 +31,17 @@ const ACTION_LABEL: Record<string, string> = {
   PASSWORD_RESET: 'Сброшен пароль сотрудника',
   PASSWORD_CHANGED: 'Пароль изменён',
   ADMIN_CANCELLED_RECORDS: 'Руководитель отменил записи сотрудника',
+  TASK_CREATED_BY_MANAGER: 'Руководитель назначил задачу',
+  TASK_UPDATED_BY_MANAGER: 'Руководитель изменил задачу',
+  TASK_REASSIGNED_BY_MANAGER: 'Руководитель переназначил задачу',
+  TASK_DELETED_BY_MANAGER: 'Руководитель удалил задачу',
+  ALLOCATION_SETTINGS_CHANGED: 'Изменены настройки распределения',
+  ALLOCATION_RUN_CREATED: 'Рассчитан черновик распределения',
+  ALLOCATION_RESULT_ADJUSTED: 'Результат распределения изменён вручную',
+  ALLOCATION_CONFIRMED: 'Распределение подтверждено',
+  ALLOCATION_DISCARDED: 'Черновик распределения отклонён',
+  ALLOCATION_BOOKING_CREATED: 'Место назначено распределением',
+  ALLOCATION_REMOTE_DAY_CREATED: 'Удалённый день назначен распределением',
 }
 
 export function ReportsPage() {

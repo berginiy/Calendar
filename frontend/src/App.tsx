@@ -11,6 +11,10 @@ import { AnalyticsPage } from './features/analytics/AnalyticsPage'
 import { EmployeesPage } from './features/employees/EmployeesPage'
 import { ReportsPage } from './features/reports/ReportsPage'
 import { SettingsPage } from './features/settings/SettingsPage'
+import { TasksPage } from './features/tasks/TasksPage'
+import { ManagerTasksPage } from './features/tasks/ManagerTasksPage'
+import { PreferencesPage } from './features/preferences/PreferencesPage'
+import { AllocationPage } from './features/allocation/AllocationPage'
 
 export function App() {
   return (
@@ -22,9 +26,13 @@ export function App() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/team" element={<TeamPage />} />
           <Route path="/my-statistics" element={<MyStatisticsPage />} />
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/preferences" element={<PreferencesPage />} />
           <Route element={<ProtectedRoute roles={['MANAGER']} />}>
             <Route path="/manager/dashboard" element={<DashboardPage />} />
             <Route path="/manager/analytics" element={<AnalyticsPage />} />
+            <Route path="/manager/tasks" element={<ManagerTasksPage />} />
+            <Route path="/manager/allocation" element={<AllocationPage />} />
             <Route path="/manager/reports" element={<ReportsPage />} />
             <Route path="/manager/employees" element={<EmployeesPage />} />
             <Route path="/manager/settings" element={<SettingsPage />} />

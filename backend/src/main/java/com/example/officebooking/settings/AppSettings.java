@@ -1,5 +1,6 @@
 package com.example.officebooking.settings;
 
+import com.example.officebooking.allocation.AllocationTypes;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -42,6 +43,18 @@ public class AppSettings {
     /** Могут ли обычные сотрудники видеть имена и статусы коллег в командном календаре. */
     @Column(name = "team_visible_to_employees", nullable = false)
     private boolean teamVisibleToEmployees;
+
+    /** Автоматическое распределение офисных и удалённых дней. По умолчанию выключено. */
+    @Column(name = "allocation_enabled", nullable = false)
+    private boolean allocationEnabled;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "allocation_policy", nullable = false)
+    private AllocationTypes.Policy allocationPolicy = AllocationTypes.Policy.ROTATION;
+
+    /** Предпочтения на дату можно менять не позднее чем за N часов до начала этого дня. */
+    @Column(name = "preference_deadline_hours", nullable = false)
+    private int preferenceDeadlineHours = 24;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;

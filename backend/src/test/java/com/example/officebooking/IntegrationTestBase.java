@@ -36,11 +36,18 @@ public abstract class IntegrationTestBase {
 
     @BeforeEach
     void resetState() {
+        // порядок важен из-за внешних ключей: сначала зависимые таблицы
+        jdbc.update("delete from notifications");
+        jdbc.update("delete from allocation_results");
+        jdbc.update("delete from allocation_runs");
+        jdbc.update("delete from work_preferences");
+        jdbc.update("delete from daily_tasks");
         jdbc.update("delete from audit_log");
         jdbc.update("delete from presence_records");
         jdbc.update("update app_settings set office_capacity = 10, allow_same_day_booking = false, "
                 + "cancellation_deadline_hours = 0, updated_by_user_id = null, "
-                + "working_days = 'MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY'");
+                + "working_days = 'MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY', team_visible_to_employees = false, "
+                + "allocation_enabled = false, allocation_policy = 'ROTATION', preference_deadline_hours = 24");
         jdbc.update("update limit_rules set max_days = 1, enabled = true, updated_by_user_id = null where period_type = 'WEEKLY'");
         jdbc.update("update limit_rules set max_days = 4, enabled = true, updated_by_user_id = null where period_type = 'MONTHLY'");
         jdbc.update("delete from users where email like 'it-%'");
